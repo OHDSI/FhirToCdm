@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Lookups\Base.sql" />
+    <None Remove="Lookups\Cvx.sql" />
+    <None Remove="Lookups\Loinc.sql" />
+    <None Remove="Lookups\Rxnorm.sql" />
+    <None Remove="Lookups\Snomed.sql" />
+    <None Remove="Lookups\Unit.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Lookups\Base.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Lookups\Cvx.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Lookups\Rxnorm.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Lookups\Snomed.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Lookups\Loinc.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Lookups\Unit.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="Hl7.Fhir.R4" Version="1.9.0" />
+    <PackageReference Include="org.ohdsi.cdm.framework.common" Version="1.0.0" />
+    <PackageReference Include="ShellProgressBar" Version="5.0.0" />
+    <PackageReference Include="System.Data.Odbc" Version="4.7.0" />
+  </ItemGroup>
+
+</Project>
