@@ -26,7 +26,7 @@ Command-line options:
 
   * --help              Display this help screen.
 
-  --version           Display version information.
+  * --version           Display version information.
 
 ODBC templates (for the vocabular database):
 ============
