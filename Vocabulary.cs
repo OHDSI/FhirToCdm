@@ -1,7 +1,9 @@
-﻿using org.ohdsi.cdm.framework.common.Lookups;
+﻿using Npgsql;
+using org.ohdsi.cdm.framework.common.Lookups;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.Odbc;
 using System.Diagnostics;
 using System.IO;
@@ -85,20 +87,32 @@ namespace FHIRtoCDM
                         var timer = new Stopwatch();
                         timer.Start();
 
-                        using (var connection = new OdbcConnection(_vocabularyConnectionString))
+                        if (_vocabularyConnectionString.ToLower().Contains("postgre"))
                         {
-                            connection.Open();
-                            using var command = new OdbcCommand(sql, connection) { CommandTimeout = 0 };
-                            using var reader = command.ExecuteReader();
-                            Console.WriteLine(lookup + " - filling");
-                            var l = new Lookup();
-                            while (reader.Read())
-                            {
-                                var lv = CreateLookupValue(reader);
-                                l.Add(lv);
-                            }
+                            var odbc = new OdbcConnectionStringBuilder(_vocabularyConnectionString);
+                            var connectionStringTemplate = "Server={server};Port=5432;Database={database};User Id={username};Password={password};SslMode=Require;Trust Server Certificate=true";
+                            var npgsqlConnectionString = connectionStringTemplate.Replace("{server}", odbc["server"].ToString())
+                                .Replace("{database}", odbc["database"].ToString()).Replace("{username}", odbc["uid"].ToString())
+                                .Replace("{password}", odbc["pwd"].ToString());
 
-                            _lookups.Add(lookup, l);
+                            Console.WriteLine("npgsqlConnectionString=" + npgsqlConnectionString);
+
+                            using (var connection = new NpgsqlConnection(npgsqlConnectionString))
+                            {
+                                connection.Open();
+                                using var command = new NpgsqlCommand(sql, connection) { CommandTimeout = 0 };
+                                Fill(lookup, command);
+                            }
+                        }
+                        else
+                        {
+                            using (var connection = new OdbcConnection(_vocabularyConnectionString))
+                            {
+                                connection.Open();
+
+                                using var command = new OdbcCommand(sql, connection) { CommandTimeout = 0 };
+                                Fill(lookup, command);
+                            }
                         }
 
                         timer.Stop();
@@ -113,6 +127,20 @@ namespace FHIRtoCDM
                     }
                 }
             }
+        }
+
+        private void Fill(string lookup, DbCommand command)
+        {
+            using var reader = command.ExecuteReader();
+            Console.WriteLine(lookup + " - filling");
+            var l = new Lookup();
+            while (reader.Read())
+            {
+                var lv = CreateLookupValue(reader);
+                l.Add(lv);
+            }
+
+            _lookups.Add(lookup, l);
         }
 
         public void Fill(string vocabularyConnectionString, string vocabularySchema)
