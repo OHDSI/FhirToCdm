@@ -565,7 +565,7 @@ namespace FHIRtoCDM
                     break;
 
                 default:
-                    throw new Exception("unknown vocabular " + code.System);
+                    throw new Exception("unknown vocabulary " + code.System);
             }
 
             return LookupCode(code.Code, vocabularyName);

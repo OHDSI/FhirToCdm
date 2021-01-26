@@ -28,7 +28,7 @@ Command-line options:
 
   * --version           Display version information.
 
-ODBC templates (for the vocabular database):
+ODBC templates (for the vocabulary database):
 ============
 
 * __PostgreSQL__ -  "Driver={PostgreSQL UNICODE};Server={server};Port=5432;Database={database};Uid={username};Pwd={password};sslmode=require;UseDeclareFetch=1;"
