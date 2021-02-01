@@ -1065,7 +1065,7 @@ namespace FHIRtoCDM
 
             var observationPeriodsFinal = new List<ObservationPeriod>(1)
             {
-                new ObservationPeriod {PersonId = person.PersonId, TypeConceptId = 44814724 }
+                new ObservationPeriod {PersonId = person.PersonId, TypeConceptId = 32817 }
             };
 
             if (min.HasValue)
