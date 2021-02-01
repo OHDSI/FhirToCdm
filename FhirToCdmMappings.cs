@@ -245,7 +245,7 @@ namespace FHIRtoCDM
                     var co = new omop.ConditionOccurrence(new omop.Entity())
                     {
                         PersonId = GetPersonId(condition.Subject, personIds),
-                        TypeConceptId = 32020,
+                        TypeConceptId = 32817,
                         StartDate = date,
                         SourceValue = code.Code
                     };
@@ -261,11 +261,11 @@ namespace FHIRtoCDM
 
                     if (co.Domain == "Drug")
                     {
-                        co.TypeConceptId = 581452;
+                        co.TypeConceptId = 32817;
                     }
                     else if (co.Domain == "Observation")
                     {
-                        co.TypeConceptId = 38000280;
+                        co.TypeConceptId = 32817;
                     }
 
                     var vo = GetVisitOccurrence(condition.Encounter, visits);
@@ -305,7 +305,7 @@ namespace FHIRtoCDM
                     var de = new omop.DrugExposure(new omop.Entity())
                     {
                         PersonId = GetPersonId(medication.Subject, personIds),
-                        TypeConceptId = 38000177
+                        TypeConceptId = 32817
                     };
 
                     if (medication.BasedOn.Count > 0)
@@ -352,7 +352,7 @@ namespace FHIRtoCDM
                     var de = new omop.DrugExposure(new omop.Entity())
                     {
                         PersonId = GetPersonId(immunization.Patient, personIds),
-                        TypeConceptId = 581452
+                        TypeConceptId = 32817
                     };
 
                     var result = LookupCode(code);
@@ -384,7 +384,7 @@ namespace FHIRtoCDM
                     var po = new omop.ProcedureOccurrence(new omop.Entity())
                     {
                         PersonId = GetPersonId(procedure.Subject, personIds),
-                        TypeConceptId = 38000275
+                        TypeConceptId = 32817
                     };
 
                     var result = LookupCode(code);
@@ -398,7 +398,7 @@ namespace FHIRtoCDM
 
                     if (po.Domain == "Measurement")
                     {
-                        po.TypeConceptId = 5001;
+                        po.TypeConceptId = 32817;
                     }
 
                     var vo = GetVisitOccurrence(procedure.Encounter, visits);
@@ -423,7 +423,7 @@ namespace FHIRtoCDM
                     var o = new omop.Observation(new omop.Entity())
                     {
                         PersonId = GetPersonId(allergy.Patient, personIds),
-                        TypeConceptId = 38000280
+                        TypeConceptId = 32817
                     };
 
                     var result = LookupCode(code);
@@ -451,7 +451,7 @@ namespace FHIRtoCDM
                     var m = new omop.Measurement(new omop.Entity())
                     {
                         PersonId = GetPersonId(observation.Subject, personIds),
-                        TypeConceptId = 5001
+                        TypeConceptId = 32817
                     };
 
                     var result = LookupCode(code);
