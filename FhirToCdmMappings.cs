@@ -218,7 +218,7 @@ namespace FHIRtoCDM
                     SourceValue = encounter.Class.Code,
                     StartDate = DateTime.Parse(encounter.Period.Start),
                     EndDate = DateTime.Parse(encounter.Period.End),
-                    TypeConceptId = 44818517,
+                    TypeConceptId = 32817,
                     ConceptId = conceptId
                 };
 
