@@ -169,14 +169,14 @@ namespace FHIRtoCDM
             }
         }
 
-        public IEnumerable<KeyValuePair<string, omop.VisitOccurrence>> CreateVisitOccurence(Bundle fhir, Dictionary<string, long> personIds)
+        
+        public IEnumerable<Tuple<KeyValuePair<string, VisitOccurrence>, Provider>> CreateVisitOccurenceAndProvider(Bundle fhir, Dictionary<string, long> personIds)
         {
             //care_site_id Encounter.location.location.identifier us-core - encounter, us - core - location
             //admitting_source_concept_id Encounter.hospitalization.admitSource or Encounter.hospitalization.origin(location).type    us - core - encounter, us - core - location
             //discharge_to_concept_id Encounter.location.location.type us-core - encounter,us - core - location
             //preceding_visit_occurence Encounter.partOf us-core - encounter
-
-            foreach (var item in fhir.Entry.Where(e => e.Resource.TypeName == "Encounter"))
+               foreach (var item in fhir.Entry.Where(e => e.Resource.TypeName == "Encounter"))
             {
                 var encounter = (Encounter)item.Resource;
 
@@ -212,6 +212,18 @@ namespace FHIRtoCDM
 
                 }
 
+                Provider provider = null; 
+                if(encounter.ServiceProvider != null)
+                {
+                    provider = new Provider
+                    {
+                        Id = Entity.GetId(encounter.ServiceProvider.Display),
+                        Name = encounter.ServiceProvider.Display,
+                        SourceValue = encounter.ServiceProvider.Display
+                    };
+                }
+
+               
                 var vo = new omop.VisitOccurrence(new omop.Entity())
                 {
                     PersonId = GetPersonId(encounter.Subject, personIds),
@@ -222,7 +234,13 @@ namespace FHIRtoCDM
                     ConceptId = conceptId
                 };
 
-                yield return new KeyValuePair<string, VisitOccurrence>(encounter.Id, vo);
+                if (provider != null)
+                {
+                    vo.ProviderId = provider.Id;
+                }
+
+                yield return new Tuple<KeyValuePair<string, VisitOccurrence>, Provider>(
+                    new KeyValuePair<string, VisitOccurrence>(encounter.Id, vo), provider);
             }
 
         }

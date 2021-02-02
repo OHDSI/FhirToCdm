@@ -1104,6 +1104,7 @@ namespace FHIRtoCDM
                 if (vo != null)
                 {
                     e.VisitOccurrenceId = vo.Id;
+                    e.ProviderId = vo.ProviderId;
                 }
                 else
                 {

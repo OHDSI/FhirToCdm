@@ -79,7 +79,7 @@ namespace FHIRtoCDM
             ChunkData chunkData = new ChunkData(chunkId, 0);
             var offsetManager = new KeyMasterOffsetManager(chunkId, 0, 0);
             var location = new Dictionary<string, omop.Location>();
-
+            var provider = new Dictionary<long, omop.Provider>();
             //var cursorTop = Console.CursorTop + 1;
             Console.WriteLine("Processing:");
             var fhirFiles = Directory.GetFiles(fhirFilesFolder, "*.json");
@@ -132,11 +132,16 @@ namespace FHIRtoCDM
                         personId++;
                     }
 
-                    foreach (var item in fhirToCdm.CreateVisitOccurence(fhir, _personIds))
+                    foreach (var vp in fhirToCdm.CreateVisitOccurenceAndProvider(fhir, _personIds))
                     {
-                        item.Value.Id = visitId;
-                        visits.Add(item.Key, item.Value);
-                        AddEntity(chunk, item.Value);
+                        vp.Item1.Value.Id = visitId;
+                        visits.Add(vp.Item1.Key, vp.Item1.Value);
+                        AddEntity(chunk, vp.Item1.Value);
+
+                        if(vp.Item2 != null && !provider.ContainsKey(vp.Item2.Id))
+                        {
+                            provider.Add(vp.Item2.Id, vp.Item2);
+                        }
                         visitId++;
                     }
 
@@ -185,7 +190,7 @@ namespace FHIRtoCDM
             }
 
             var saver = new FileSaver(_cdm, _resultFolder);
-            saver.SaveEntityLookup(_cdm, location.Values.ToList(), new List<CareSite>(), new List<Provider>());
+            saver.SaveEntityLookup(_cdm, location.Values.ToList(), new List<CareSite>(), provider.Values.ToList());
 
             Console.WriteLine("Lookups was saved ");
         }
