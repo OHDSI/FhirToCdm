@@ -87,33 +87,7 @@ namespace FHIRtoCDM
                         var timer = new Stopwatch();
                         timer.Start();
 
-                        if (_vocabularyConnectionString.ToLower().Contains("postgre"))
-                        {
-                            var odbc = new OdbcConnectionStringBuilder(_vocabularyConnectionString);
-                            var connectionStringTemplate = "Server={server};Port=5432;Database={database};User Id={username};Password={password};SslMode=Require;Trust Server Certificate=true";
-                            var npgsqlConnectionString = connectionStringTemplate.Replace("{server}", odbc["server"].ToString())
-                                .Replace("{database}", odbc["database"].ToString()).Replace("{username}", odbc["uid"].ToString())
-                                .Replace("{password}", odbc["pwd"].ToString());
-
-                            Console.WriteLine("npgsqlConnectionString=" + npgsqlConnectionString);
-
-                            using (var connection = new NpgsqlConnection(npgsqlConnectionString))
-                            {
-                                connection.Open();
-                                using var command = new NpgsqlCommand(sql, connection) { CommandTimeout = 0 };
-                                Fill(lookup, command);
-                            }
-                        }
-                        else
-                        {
-                            using (var connection = new OdbcConnection(_vocabularyConnectionString))
-                            {
-                                connection.Open();
-
-                                using var command = new OdbcCommand(sql, connection) { CommandTimeout = 0 };
-                                Fill(lookup, command);
-                            }
-                        }
+                        FillVocabulary(lookup, sql);
 
                         timer.Stop();
                         Console.WriteLine($"DONE - {timer.ElapsedMilliseconds} ms | KeysCount={_lookups[lookup].KeysCount}");
@@ -126,6 +100,68 @@ namespace FHIRtoCDM
                         throw;
                     }
                 }
+            }
+        }
+
+        private void FillVocabulary(string lookup, string sql)
+        {
+            var odbc = new OdbcConnectionStringBuilder(_vocabularyConnectionString);
+            
+            try
+            {
+                if (_vocabularyConnectionString.ToLower().Contains("postgre"))
+                {
+                    var connectionStringTemplate = "Server={server};Port=5432;Database={database};User Id={username};Password={password};SslMode=Require;Trust Server Certificate=true";
+                    var npgsqlConnectionString = connectionStringTemplate.Replace("{server}", odbc["server"].ToString())
+                        .Replace("{database}", odbc["database"].ToString()).Replace("{username}", odbc["uid"].ToString())
+                        .Replace("{password}", odbc["pwd"].ToString());
+
+                    Console.WriteLine("npgsqlConnectionString=" + npgsqlConnectionString);
+
+                    using (var connection = new NpgsqlConnection(npgsqlConnectionString))
+                    {
+                        connection.Open();
+                        using var command = new NpgsqlCommand(sql, connection) { CommandTimeout = 0 };
+                        Fill(lookup, command);
+                    }
+
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                try
+                {
+                    Console.WriteLine(e.Message);
+
+                    var connectionStringTemplate = "Server={server};Port=5432;Database={database};User Id={username};Password={password};SslMode=Disable;";
+                    var npgsqlConnectionString = connectionStringTemplate.Replace("{server}", odbc["server"].ToString())
+                        .Replace("{database}", odbc["database"].ToString()).Replace("{username}", odbc["uid"].ToString())
+                        .Replace("{password}", odbc["pwd"].ToString());
+
+                    Console.WriteLine("npgsqlConnectionString=" + npgsqlConnectionString);
+
+                    using (var connection = new NpgsqlConnection(npgsqlConnectionString))
+                    {
+                        connection.Open();
+                        using var command = new NpgsqlCommand(sql, connection) { CommandTimeout = 0 };
+                        Fill(lookup, command);
+                    }
+
+                    return;
+                }
+                catch (Exception e1)
+                {
+                    Console.WriteLine(e1.Message);
+                }
+            }
+
+            using (var connection = new OdbcConnection(_vocabularyConnectionString))
+            {
+                connection.Open();
+
+                using var command = new OdbcCommand(sql, connection) { CommandTimeout = 0 };
+                Fill(lookup, command);
             }
         }
 
