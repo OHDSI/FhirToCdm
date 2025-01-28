@@ -132,17 +132,22 @@ namespace FHIRtoCDM
                         personId++;
                     }
 
+                    Console.WriteLine("personIds count:" + _personIds.Keys.Count());
+
                     foreach (var vp in fhirToCdm.CreateVisitOccurenceAndProvider(fhir, _personIds))
                     {
-                        vp.Item1.Value.Id = visitId;
-                        visits.Add(vp.Item1.Key, vp.Item1.Value);
-                        AddEntity(chunk, vp.Item1.Value);
+                        if (vp.Item1.Value != null)
+                        {
+                            vp.Item1.Value.Id = visitId;
+                            visits.Add(vp.Item1.Key, vp.Item1.Value);
+                            AddEntity(chunk, vp.Item1.Value);
+                            visitId++;
+                        }
 
                         if(vp.Item2 != null && !provider.ContainsKey(vp.Item2.Id))
                         {
                             provider.Add(vp.Item2.Id, vp.Item2);
                         }
-                        visitId++;
                     }
 
                     foreach (var i in fhirToCdm.CreateConditionOccurrence(fhir, _personIds, visits))
