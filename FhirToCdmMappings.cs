@@ -169,14 +169,14 @@ namespace FHIRtoCDM
             }
         }
 
-        
+
         public IEnumerable<Tuple<KeyValuePair<string, VisitOccurrence>, Provider>> CreateVisitOccurenceAndProvider(Bundle fhir, Dictionary<string, long> personIds)
         {
             //care_site_id Encounter.location.location.identifier us-core - encounter, us - core - location
             //admitting_source_concept_id Encounter.hospitalization.admitSource or Encounter.hospitalization.origin(location).type    us - core - encounter, us - core - location
             //discharge_to_concept_id Encounter.location.location.type us-core - encounter,us - core - location
             //preceding_visit_occurence Encounter.partOf us-core - encounter
-               foreach (var item in fhir.Entry.Where(e => e.Resource.TypeName == "Encounter"))
+            foreach (var item in fhir.Entry.Where(e => e.Resource.TypeName == "Encounter"))
             {
                 var encounter = (Encounter)item.Resource;
 
@@ -212,8 +212,8 @@ namespace FHIRtoCDM
 
                 }
 
-                Provider provider = null; 
-                if(encounter.ServiceProvider != null)
+                Provider provider = null;
+                if (encounter.ServiceProvider != null)
                 {
                     provider = new Provider
                     {
@@ -223,26 +223,30 @@ namespace FHIRtoCDM
                     };
                 }
 
-               
-                var vo = new omop.VisitOccurrence(new omop.Entity())
-                {
-                    PersonId = GetPersonId(encounter.Subject, personIds),
-                    SourceValue = encounter.Class.Code,
-                    StartDate = DateTime.Parse(encounter.Period.Start),
-                    EndDate = DateTime.Parse(encounter.Period.End),
-                    TypeConceptId = 32817,
-                    ConceptId = conceptId
-                };
+                var personId = GetPersonId1(encounter.Subject, personIds);
 
-                if (provider != null)
+                VisitOccurrence vo = null;
+                if (personId.HasValue)
                 {
-                    vo.ProviderId = provider.Id;
+                    vo = new VisitOccurrence(new Entity())
+                    {
+                        PersonId = personId.Value,
+                        SourceValue = encounter.Class.Code,
+                        StartDate = DateTime.Parse(encounter.Period.Start),
+                        EndDate = DateTime.Parse(encounter.Period.End),
+                        TypeConceptId = 32817,
+                        ConceptId = conceptId
+                    };
+
+                    if (provider != null)
+                    {
+                        vo.ProviderId = provider.Id;
+                    }
                 }
 
                 yield return new Tuple<KeyValuePair<string, VisitOccurrence>, Provider>(
                     new KeyValuePair<string, VisitOccurrence>(encounter.Id, vo), provider);
             }
-
         }
 
         public IEnumerable<omop.ConditionOccurrence> CreateConditionOccurrence(Bundle fhir, Dictionary<string, long> personIds, Dictionary<string, VisitOccurrence> visits)
@@ -260,9 +264,13 @@ namespace FHIRtoCDM
                 {
                     var date = DateTime.Parse(((Hl7.Fhir.Model.FhirDateTime)condition.Onset).Value);
 
-                    var co = new omop.ConditionOccurrence(new omop.Entity())
+                    var personId = GetPersonId1(condition.Subject, personIds);
+                    if (!personId.HasValue)
+                        continue;
+
+                    var co = new ConditionOccurrence(new Entity())
                     {
-                        PersonId = GetPersonId(condition.Subject, personIds),
+                        PersonId = personId.Value,
                         TypeConceptId = 32817,
                         StartDate = date,
                         SourceValue = code.Code
@@ -299,7 +307,7 @@ namespace FHIRtoCDM
 
         }
 
-        public IEnumerable<omop.DrugExposure> CreateDrugExposure(Bundle fhir, Dictionary<string, long> personIds, Dictionary<string, VisitOccurrence> visits)
+        public IEnumerable<DrugExposure> CreateDrugExposure(Bundle fhir, Dictionary<string, long> personIds, Dictionary<string, VisitOccurrence> visits)
         {
             //stop_reason MedicationStatement.statusReason us-core - medicationstatement
             //refills MedicationStatement.basedOn(MedicationRequest).dispenseRequest.numberOfRepeatsAllowed   us - core - medicationstatement, us - core - medicationrequest
@@ -320,9 +328,13 @@ namespace FHIRtoCDM
 
                 foreach (var code in cc.Coding)
                 {
-                    var de = new omop.DrugExposure(new omop.Entity())
+                    var personId = GetPersonId1(medication.Subject, personIds);
+                    if (!personId.HasValue)
+                        continue;
+
+                    var de = new DrugExposure(new Entity())
                     {
-                        PersonId = GetPersonId(medication.Subject, personIds),
+                        PersonId = personId.Value,
                         TypeConceptId = 32817
                     };
 
@@ -367,9 +379,13 @@ namespace FHIRtoCDM
 
                 foreach (var code in ((Hl7.Fhir.Model.CodeableConcept)immunization.VaccineCode).Coding)
                 {
+                    var personId = GetPersonId1(immunization.Patient, personIds);
+                    if (!personId.HasValue)
+                        continue;
+
                     var de = new omop.DrugExposure(new omop.Entity())
                     {
-                        PersonId = GetPersonId(immunization.Patient, personIds),
+                        PersonId = personId.Value,
                         TypeConceptId = 32817
                     };
 
@@ -388,7 +404,7 @@ namespace FHIRtoCDM
             }
         }
 
-        public IEnumerable<omop.ProcedureOccurrence> CreateProcedureOccurrence(Bundle fhir, Dictionary<string, long> personIds, Dictionary<string, VisitOccurrence> visits)
+        public IEnumerable<ProcedureOccurrence> CreateProcedureOccurrence(Bundle fhir, Dictionary<string, long> personIds, Dictionary<string, VisitOccurrence> visits)
         {
             //quantity Procedure.Extension(Proposed Name: num - of - procedures : CodeableConcept)    us - core - procedure
             //provider_id Procedure.performer.actor
@@ -399,9 +415,13 @@ namespace FHIRtoCDM
 
                 foreach (var code in ((Hl7.Fhir.Model.CodeableConcept)procedure.Code).Coding)
                 {
-                    var po = new omop.ProcedureOccurrence(new omop.Entity())
+                    var personId = GetPersonId1(procedure.Subject, personIds);
+                    if (!personId.HasValue)
+                        continue;
+
+                    var po = new ProcedureOccurrence(new Entity())
                     {
-                        PersonId = GetPersonId(procedure.Subject, personIds),
+                        PersonId = personId.Value,
                         TypeConceptId = 32817
                     };
 
@@ -438,9 +458,13 @@ namespace FHIRtoCDM
 
                 foreach (var code in ((Hl7.Fhir.Model.CodeableConcept)allergy.Code).Coding)
                 {
-                    var o = new omop.Observation(new omop.Entity())
+                    var personId = GetPersonId1(allergy.Patient, personIds);
+                    if (!personId.HasValue)
+                        continue;
+
+                    var o = new omop.Observation(new Entity())
                     {
-                        PersonId = GetPersonId(allergy.Patient, personIds),
+                        PersonId = personId.Value,
                         TypeConceptId = 32817
                     };
 
@@ -455,7 +479,7 @@ namespace FHIRtoCDM
             }
         }
 
-        public IEnumerable<omop.Measurement> CreateMeasurement(Bundle fhir, Dictionary<string, long> personIds, Dictionary<string, VisitOccurrence> visits)
+        public IEnumerable<Measurement> CreateMeasurement(Bundle fhir, Dictionary<string, long> personIds, Dictionary<string, VisitOccurrence> visits)
         {
             //provider_id Observation.performer(Practitioner)    us - core - observationresults
             //value_as_concept_id Observation.valueCodeableConcept us-core - observationresults
@@ -464,11 +488,15 @@ namespace FHIRtoCDM
             {
                 var observation = (Hl7.Fhir.Model.Observation)item.Resource;
 
-                foreach (var code in ((Hl7.Fhir.Model.CodeableConcept)observation.Code).Coding)
+                foreach (var code in ((CodeableConcept)observation.Code).Coding)
                 {
-                    var m = new omop.Measurement(new omop.Entity())
+                    var personId = GetPersonId1(observation.Subject, personIds);
+                    if (!personId.HasValue)
+                        continue;
+
+                    var m = new Measurement(new Entity())
                     {
-                        PersonId = GetPersonId(observation.Subject, personIds),
+                        PersonId = personId.Value,
                         TypeConceptId = 32817
                     };
 
@@ -488,7 +516,7 @@ namespace FHIRtoCDM
                     var vo = GetVisitOccurrence(observation.Encounter, visits);
                     m.VisitOccurrenceId = vo.Id;
                     m.VisitDetailId = vo.Id;
-                    m.StartDate = DateTime.Parse(((Hl7.Fhir.Model.FhirDateTime)observation.Effective).Value);
+                    m.StartDate = DateTime.Parse(((FhirDateTime)observation.Effective).Value);
 
                     if (observation.Value != null)
                     {
@@ -529,9 +557,13 @@ namespace FHIRtoCDM
             }
         }
 
-        private long GetPersonId(ResourceReference e, Dictionary<string, long> personIds)
+        private long? GetPersonId1(ResourceReference e, Dictionary<string, long> personIds)
         {
-            return personIds[e.Reference.Replace("urn:uuid:", "")];
+            var key = e.Reference.Replace("urn:uuid:", "");
+            if (personIds.ContainsKey(key))
+                return personIds[key];
+
+            return null;
         }
 
         private VisitOccurrence GetVisitOccurrence(ResourceReference e, Dictionary<string, VisitOccurrence> visits)
